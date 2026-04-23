@@ -9,6 +9,7 @@ classifiers = [
 ]
 
 [project.urls]
+Homepage = "https://registry.comfy.org/publishers/ussaaron/nodes/framefuse"
 Repository = "https://github.com/headline-design/comfyui-framefuse"
 Documentation = "https://github.com/headline-design/comfyui-framefuse#readme"
 "Bug Tracker" = "https://github.com/headline-design/comfyui-framefuse/issues"

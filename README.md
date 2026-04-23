@@ -57,6 +57,10 @@ custom_nodes/comfyui-framefuse
 
 Restart ComfyUI and add `FrameFuse` from the node search.
 
+## Registry
+
+- Comfy Registry: https://registry.comfy.org/publishers/ussaaron/nodes/framefuse
+
 Official docs:
 
 - https://docs.comfy.org/registry/publishing
