@@ -75,6 +75,14 @@ class FrameFuseTests(unittest.TestCase):
         self.assertTrue(torch.equal(extended["waveform"][..., 4000:], audio["waveform"]))
         self.assertIn("Prepended", report)
 
+    def test_stitch_audio_silence_rejects_non_dict_audio_when_extension_enabled(self):
+        with self.assertRaises(TypeError):
+            framefuse_nodes.stitch_audio_silence("not-audio", 2, 24.0, True, "prepend_start")
+
+    def test_stitch_audio_silence_rejects_invalid_audio_dict_when_extension_enabled(self):
+        with self.assertRaises(ValueError):
+            framefuse_nodes.stitch_audio_silence({"waveform": None, "sample_rate": None}, 2, 24.0, True, "append_end")
+
 
 if __name__ == "__main__":
     unittest.main()

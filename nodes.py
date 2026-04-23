@@ -88,12 +88,14 @@ def stitch_audio_silence(
     if not extend_audio_with_silence:
         return audio, "Audio passed through unchanged."
     if not isinstance(audio, dict):
-        return audio, "Audio passed through unchanged because it was not a ComfyUI audio dict."
+        raise TypeError("extend_audio_with_silence is enabled, but audio was not a ComfyUI AUDIO dict.")
 
     waveform = audio.get("waveform")
     sample_rate = audio.get("sample_rate")
     if not isinstance(waveform, torch.Tensor) or not sample_rate:
-        return audio, "Audio passed through unchanged because waveform/sample_rate was not recognized."
+        raise ValueError(
+            "extend_audio_with_silence is enabled, but audio did not contain a valid waveform tensor and sample_rate."
+        )
 
     fps_value = float(fps)
     if fps_value <= 0:
@@ -106,14 +108,15 @@ def stitch_audio_silence(
     silence_shape = list(waveform.shape)
     silence_shape[-1] = silence_samples
     silence = torch.zeros(silence_shape, dtype=waveform.dtype, device=waveform.device)
+    silence_seconds = silence_samples / float(sample_rate)
 
     extended_audio = dict(audio)
     if placement_mode == "prepend_start":
         extended_audio["waveform"] = torch.cat((silence, waveform), dim=-1)
-        return extended_audio, f"Prepended {silence_samples} silent audio sample(s)."
+        return extended_audio, f"Prepended {silence_samples} silent audio sample(s) ({silence_seconds:.6f}s)."
 
     extended_audio["waveform"] = torch.cat((waveform, silence), dim=-1)
-    return extended_audio, f"Appended {silence_samples} silent audio sample(s)."
+    return extended_audio, f"Appended {silence_samples} silent audio sample(s) ({silence_seconds:.6f}s)."
 
 
 class FrameFuse:
