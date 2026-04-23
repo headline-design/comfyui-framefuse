@@ -9,10 +9,10 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/your-user/your-repo"
-Documentation = "https://github.com/your-user/your-repo#readme"
-"Bug Tracker" = "https://github.com/your-user/your-repo/issues"
+Repository = "https://github.com/headline-design/comfyui-framefuse"
+Documentation = "https://github.com/headline-design/comfyui-framefuse#readme"
+"Bug Tracker" = "https://github.com/headline-design/comfyui-framefuse/issues"
 
 [tool.comfy]
-PublisherId = "replace-with-your-publisher-id"
+PublisherId = "ussaaron"
 DisplayName = "FrameFuse"

@@ -65,10 +65,9 @@ This repo already includes the files the registry expects:
 - `LICENSE`
 - `.github/workflows/publish.yml`
 
-Before publishing, update these fields in `pyproject.toml`:
+Before publishing, confirm these fields in `pyproject.toml`:
 
 - `[project].name` if `framefuse` is unavailable in the registry
-- `[project.urls].Repository`
 - `[tool.comfy].PublisherId`
 
 Then:
