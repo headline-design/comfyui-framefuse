@@ -171,7 +171,7 @@ class FrameFuse:
     RETURN_TYPES = ("IMAGE", "AUDIO", "INT", "STRING")
     RETURN_NAMES = ("STITCHED_VIDEO", "AUDIO", "FRAME_COUNT", "REPORT")
     FUNCTION = "stitch"
-    CATEGORY = "video/utils"
+    CATEGORY = "FrameFuse"
 
     def stitch(
         self,
