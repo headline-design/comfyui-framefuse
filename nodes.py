@@ -1,5 +1,7 @@
 """ComfyUI node for stitching still frames onto IMAGE video batches."""
 
+from collections.abc import Mapping
+
 
 def _as_nhwc_batch(images, input_name: str):
     import torch
@@ -87,8 +89,8 @@ def stitch_audio_silence(
         return None, "No audio input."
     if not extend_audio_with_silence:
         return audio, "Audio passed through unchanged."
-    if not isinstance(audio, dict):
-        raise TypeError("extend_audio_with_silence is enabled, but audio was not a ComfyUI AUDIO dict.")
+    if not isinstance(audio, Mapping):
+        raise TypeError("extend_audio_with_silence is enabled, but audio was not a ComfyUI AUDIO mapping.")
 
     waveform = audio.get("waveform")
     sample_rate = audio.get("sample_rate")
