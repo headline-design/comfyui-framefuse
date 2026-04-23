@@ -57,26 +57,6 @@ custom_nodes/comfyui-framefuse
 
 Restart ComfyUI and add `FrameFuse` from the node search.
 
-## Publish to the Comfy Registry
-
-This repo already includes the files the registry expects:
-
-- `pyproject.toml`
-- `LICENSE`
-- `.github/workflows/publish.yml`
-
-Before publishing, confirm these fields in `pyproject.toml`:
-
-- `[project].name` if `framefuse` is unavailable in the registry
-- `[tool.comfy].PublisherId`
-
-Then:
-
-1. Create a publisher in the Comfy Registry.
-2. Create a registry publishing API key.
-3. Add that key to GitHub as `REGISTRY_ACCESS_TOKEN`.
-4. Push a semver bump to `pyproject.toml` or run `comfy node publish`.
-
 Official docs:
 
 - https://docs.comfy.org/registry/publishing
