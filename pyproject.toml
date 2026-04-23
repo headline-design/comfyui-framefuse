@@ -1,0 +1,18 @@
+[project]
+name = "framefuse"
+description = "ComfyUI node for stitching a still frame onto the start or end of an IMAGE video batch with optional audio silence alignment."
+version = "1.0.0"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+classifiers = [
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Repository = "https://github.com/your-user/your-repo"
+Documentation = "https://github.com/your-user/your-repo#readme"
+"Bug Tracker" = "https://github.com/your-user/your-repo/issues"
+
+[tool.comfy]
+PublisherId = "replace-with-your-publisher-id"
+DisplayName = "FrameFuse"
