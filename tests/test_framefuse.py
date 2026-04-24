@@ -109,6 +109,55 @@ class FrameFuseTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             framefuse_nodes.stitch_audio_silence({"waveform": None, "sample_rate": None}, 2, 24.0, True, "append_end")
 
+    def test_trim_frame_batch_end_removes_tail_frames(self):
+        video = torch.arange(4 * 2 * 2 * 3, dtype=torch.float32).reshape(4, 2, 2, 3)
+
+        trimmed, trimmed_count = framefuse_nodes.trim_frame_batch_end(video, 2)
+
+        self.assertEqual(trimmed.shape, (2, 2, 2, 3))
+        self.assertEqual(trimmed_count, 2)
+        self.assertTrue(torch.equal(trimmed, video[:2]))
+
+    def test_trim_frame_batch_end_rejects_removing_all_frames(self):
+        video = torch.zeros((2, 4, 4, 3))
+
+        with self.assertRaises(ValueError):
+            framefuse_nodes.trim_frame_batch_end(video, 2)
+
+    def test_trim_audio_end_removes_matching_tail_audio(self):
+        audio = {
+            "waveform": torch.ones((1, 2, 48000)),
+            "sample_rate": 48000,
+        }
+
+        trimmed, report = framefuse_nodes.trim_audio_end(audio, 2, 24.0, True)
+
+        self.assertEqual(trimmed["waveform"].shape, (1, 2, 44000))
+        self.assertTrue(torch.equal(trimmed["waveform"], audio["waveform"][..., :44000]))
+        self.assertIn("Trimmed 4000 audio sample(s)", report)
+
+    def test_trim_audio_end_passes_through_when_disabled(self):
+        audio = {
+            "waveform": torch.ones((1, 2, 48000)),
+            "sample_rate": 48000,
+        }
+
+        trimmed, report = framefuse_nodes.trim_audio_end(audio, 10, 30.0, False)
+
+        self.assertIs(trimmed, audio)
+        self.assertIn("passed through unchanged", report)
+
+    def test_trim_audio_end_accepts_mapping_audio(self):
+        audio = self.LazyAudioMap({
+            "waveform": torch.ones((1, 2, 48000)),
+            "sample_rate": 48000,
+        })
+
+        trimmed, report = framefuse_nodes.trim_audio_end(audio, 10, 30.0, True)
+
+        self.assertEqual(trimmed["waveform"].shape, (1, 2, 32000))
+        self.assertIn("0.333333", report)
+
 
 if __name__ == "__main__":
     unittest.main()

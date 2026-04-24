@@ -121,6 +121,60 @@ def stitch_audio_silence(
     return extended_audio, f"Appended {silence_samples} silent audio sample(s) ({silence_seconds:.6f}s)."
 
 
+def trim_frame_batch_end(video_frames, trim_count: int):
+    video_frames = _as_nhwc_batch(video_frames, "video_frames")
+
+    trim_frames = max(0, int(trim_count))
+    total_frames = int(video_frames.shape[0])
+    if trim_frames == 0:
+        return video_frames, trim_frames
+    if trim_frames >= total_frames:
+        raise ValueError(
+            f"trim_count {trim_frames} would remove all {total_frames} frame(s). "
+            "Leave at least one frame in the output batch."
+        )
+
+    return video_frames[:-trim_frames], trim_frames
+
+
+def trim_audio_end(audio, trimmed_frame_count: int, fps: float, trim_audio: bool):
+    import torch
+
+    if audio is None:
+        return None, "No audio input."
+    if not trim_audio:
+        return audio, "Audio passed through unchanged."
+    if not isinstance(audio, Mapping):
+        raise TypeError("trim_audio is enabled, but audio was not a ComfyUI AUDIO mapping.")
+
+    waveform = audio.get("waveform")
+    sample_rate = audio.get("sample_rate")
+    if not isinstance(waveform, torch.Tensor) or not sample_rate:
+        raise ValueError("trim_audio is enabled, but audio did not contain a valid waveform tensor and sample_rate.")
+
+    fps_value = float(fps)
+    if fps_value <= 0:
+        raise ValueError("fps must be greater than 0 when trimming audio.")
+
+    trim_samples = int(round(float(sample_rate) * int(trimmed_frame_count) / fps_value))
+    if trim_samples <= 0:
+        return audio, "Audio passed through unchanged because trimmed duration rounded to 0 samples."
+
+    total_samples = int(waveform.shape[-1])
+    kept_samples = max(0, total_samples - trim_samples)
+    trimmed_audio = dict(audio)
+    trimmed_audio["waveform"] = waveform[..., :kept_samples]
+    trimmed_seconds = min(trim_samples, total_samples) / float(sample_rate)
+
+    if trim_samples > total_samples:
+        return (
+            trimmed_audio,
+            f"Trimmed all available audio ({trimmed_seconds:.6f}s requested exceeded waveform length).",
+        )
+
+    return trimmed_audio, f"Trimmed {trim_samples} audio sample(s) from the end ({trimmed_seconds:.6f}s)."
+
+
 class FrameFuse:
     """Add a selected frame to the start or end of a ComfyUI IMAGE video batch."""
 
@@ -214,10 +268,70 @@ class FrameFuse:
         return (stitched_video, output_audio, int(stitched_video.shape[0]), report)
 
 
+class FrameFuseTrimEnd:
+    """Trim frames from the end of a ComfyUI IMAGE video batch."""
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "video_frames": ("IMAGE", {
+                    "tooltip": "Video represented as a ComfyUI IMAGE batch.",
+                }),
+                "trim_count": ("INT", {
+                    "default": 1,
+                    "min": 0,
+                    "max": 1024,
+                    "tooltip": "How many frames to remove from the end of the batch.",
+                }),
+                "fps": ("FLOAT", {
+                    "default": 24.0,
+                    "min": 1.0,
+                    "max": 240.0,
+                    "step": 0.01,
+                    "tooltip": "Frame rate used to calculate matching audio trim duration.",
+                }),
+                "trim_audio": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "Trim matching audio duration from the end of the audio input.",
+                }),
+            },
+            "optional": {
+                "audio": ("AUDIO", {
+                    "tooltip": "Optional audio to pass through or trim from the end.",
+                }),
+            },
+        }
+
+    RETURN_TYPES = ("IMAGE", "AUDIO", "INT", "STRING")
+    RETURN_NAMES = ("TRIMMED_VIDEO", "AUDIO", "FRAME_COUNT", "REPORT")
+    FUNCTION = "trim"
+    CATEGORY = "FrameFuse"
+
+    def trim(
+        self,
+        video_frames,
+        trim_count: int,
+        fps: float,
+        trim_audio: bool,
+        audio=None,
+    ):
+        trimmed_video, trimmed_frames = trim_frame_batch_end(video_frames, trim_count)
+        output_audio, audio_report = trim_audio_end(audio, trimmed_frames, fps, trim_audio)
+        report = (
+            f"Trimmed {trimmed_frames} frame(s) from the end. "
+            f"Output frame count: {int(trimmed_video.shape[0])}. "
+            f"{audio_report}"
+        )
+        return (trimmed_video, output_audio, int(trimmed_video.shape[0]), report)
+
+
 NODE_CLASS_MAPPINGS = {
     "FrameFuse": FrameFuse,
+    "FrameFuseTrimEnd": FrameFuseTrimEnd,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "FrameFuse": "FrameFuse",
+    "FrameFuseTrimEnd": "FrameFuse Trim End",
 }
