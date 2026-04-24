@@ -1,7 +1,7 @@
 [project]
 name = "framefuse"
-description = "ComfyUI node for stitching a still frame onto the start or end of an IMAGE video batch with optional audio silence alignment."
-version = "1.0.0"
+description = "ComfyUI nodes for stitching a still frame onto the start or end of an IMAGE video batch and trimming extra tail frames with optional audio sync alignment."
+version = "1.0.1"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
 classifiers = [
